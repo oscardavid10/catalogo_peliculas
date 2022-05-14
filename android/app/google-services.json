@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "734595817865",
+    "project_id": "galeria-ceea5",
+    "storage_bucket": "galeria-ceea5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:734595817865:android:6597e5f5dd309c28f6c158",
+        "android_client_info": {
+          "package_name": "com.example.catalogo_peliculas"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "734595817865-o6g171955j0phqgjfc7ghmqk1dc82id4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAzAeEyYITkEPHuqj7UkuNO-ybUwFQG7M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "734595817865-o6g171955j0phqgjfc7ghmqk1dc82id4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
