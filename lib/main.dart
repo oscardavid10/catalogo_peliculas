@@ -40,10 +40,10 @@ class MyApp extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  //const HomePage({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class MainPage extends StatefulWidget {
@@ -73,7 +73,7 @@ class _MainPageState extends State<MainPage>{
             InkWell(
               onTap: (){
                 Navigator.of(context).pop();
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => MainPage(),));
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => HomePage(),));
               },
               child: Container(
                 margin: const EdgeInsets.only(top: 30),
@@ -106,7 +106,7 @@ class _MainPageState extends State<MainPage>{
                 padding: const EdgeInsets.all(20),
                 width: double.infinity,
                 color: Colors.black38,
-                child: const Text("Agregar Pelicula"),
+                child: const Text("Administración Peliculas"),
               ),
             ),
             Expanded(child: Container()),
@@ -140,12 +140,13 @@ class _MainPageState extends State<MainPage>{
           return Center(child: CircularProgressIndicator());
         }
       }),
+    /*
     floatingActionButton: FloatingActionButton(
       child: Icon(Icons.add),
       onPressed: (){
         Navigator.of(context).push(MaterialPageRoute(builder: (context) => MoviePage(),));
       },
-    ),
+    ),*/
   );
 
   Widget buildMovie(Movie movie) => ListTile(
@@ -160,12 +161,77 @@ class _MainPageState extends State<MainPage>{
         )),
     title: Text(movie.titulo),
     subtitle: Text(movie.descripcion),
+    onTap: () => Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MovieDetail(
+          movie: movie,
+        ),
+      ),
+    ),
   );
 
 
   Stream<List<Movie>> readMovies() => FirebaseFirestore.instance.collection('catalogo')
       .snapshots()
       .map((snapshot) => snapshot.docs.map((doc) => Movie.fromJson(doc.data())).toList());
+}
+
+class MovieDetail extends StatelessWidget {
+  final Movie movie;
+
+  MovieDetail({required this.movie});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(movie.titulo),
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              children: <Widget>[
+                Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      new Container(
+                        child: new Image.network(
+                          "${movie.imagen}",
+                          height: 250.0,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      ListTile(
+                        title: Text("Año"),
+                        subtitle: Text("${movie.year}"),
+                      ),
+                      ListTile(
+                        title: Text("Director"),
+                        subtitle: Text("${movie.director}"),
+                      ),
+                      ListTile(
+                        title: Text("Genero"),
+                        subtitle: Text(movie.genero),
+                      ),
+                      ListTile(
+                        title: Text("Sinopsis"),
+                        subtitle: Text("${movie.descripcion}"),
+                      ),
+                      ListTile(
+                        title: Text("Genero"),
+                        subtitle: Text("${movie.genero}"),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+    );
+  }
 }
 
 class MoviePage extends StatefulWidget {
@@ -203,7 +269,7 @@ keyboardType: TextInputType.number,
 const SizedBox(height: 24),
 TextField(
   controller: controllerDescripcion,
-decoration: decoration('Descripcion'),
+decoration: decoration('Sinopsis'),
 ),
 const SizedBox(height: 24),
 TextField(
@@ -259,28 +325,35 @@ border: OutlineInputBorder(),
 }
 
 class _HomePageState extends State<HomePage> {
-  final controller = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: TextField(controller: controller),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
+  Widget build (BuildContext context) => Scaffold(
+      body: new Stack(
+        children: [
+          new Container(
+            width: 200,
+            height: 200,
+            margin: const EdgeInsets.only(top: 200, left: 100),
+            child: Image.asset("images/Fondo.png"),
+          ),
+          new Center(
+            child: new Text(
+                "Bienvenidos al catálogo más grande de películas"),
+          ),
+          new TextButton(
+            style: ButtonStyle(
+              foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+            ),
             onPressed: () {
-              final name = controller.text;
-
-              //createMovie(name: name);
+              Navigator.of(context).pop();
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MainPage(),));
             },
+            child: Text('TextButton'),
           )
         ],
-      ),
-    );
-  }
-
-
+      )
+  );
+  //);
 }
 
 class Movie {
