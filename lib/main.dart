@@ -1,18 +1,18 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'screens/login_page.dart';
 /*
 void main() {
   runApp(const MyApp());
 }
  */
 
-Future main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
   runApp(MyApp());
 }
 
@@ -34,10 +34,27 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       title: 'Kindacode.com',
-      home: MainPage(),
+      home: LoginPage(),
     );
   }
 }
+
+
+class Administracion extends StatefulWidget {
+  //const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<Administracion> createState() => _AdministracionState();
+}
+
+class EliminarPage extends StatefulWidget {
+  //const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<EliminarPage> createState() => _EliminarPage();
+}
+
+
 
 class HomePage extends StatefulWidget {
   //const HomePage({Key? key}) : super(key: key);
@@ -53,8 +70,78 @@ class MainPage extends StatefulWidget {
   State<MainPage> createState() => _MainPageState();
 }
 
+class _EliminarPage extends State<EliminarPage>{
+  final controller = TextEditingController();
+  bool _isSendingVerification = false;
+  bool _isSigningOut = false;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: Text('Eliminar Pelicula'),
+    ),
+    body: StreamBuilder<List<Movie>>(
+        stream: readMovies(),
+        builder: (context, snapshot){
+          if(snapshot.hasError){
+            return Text('Algo salio mal! ${snapshot.error}');
+          }else if(snapshot.hasData){
+            final movies = snapshot.data!;
+
+            return ListView(
+              children: movies.map(buildMovie).toList(),
+            );
+          }else{
+            return Center(child: CircularProgressIndicator());
+          }
+        }),
+  );
+
+  Widget buildMovie(Movie movie) => ListTile(
+    //leading: CircleAvatar(child: Text('${movie.year}')),
+    leading: ConstrainedBox(
+        constraints:
+        BoxConstraints(minWidth: 100, minHeight: 100),
+        child: Image.network(
+          '${movie.imagen}',
+          width: 100,
+          height: 100,
+        )),
+    title: Text(movie.titulo),
+    trailing: IconButton(
+      icon: Icon(
+        Icons.delete_outline,
+        size: 20.0,
+        color: Colors.white,
+      ),
+      onPressed: () async {
+        try {
+          FirebaseFirestore.instance
+              .collection("catalogo")
+              .doc('${movie.id}')
+              .delete()
+              .then((_) {
+            print("success!");
+          });
+        }
+        catch (e) {
+          print("ERROR DURING DELETE");
+        }
+        //   _onDeleteItemPressed(index);
+      },
+    ),
+  );
+
+
+  Stream<List<Movie>> readMovies() => FirebaseFirestore.instance.collection('catalogo')
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) => Movie.fromJson(doc.data())).toList());
+}
+
 class _MainPageState extends State<MainPage>{
   final controller = TextEditingController();
+  bool _isSendingVerification = false;
+  bool _isSigningOut = false;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -99,7 +186,7 @@ class _MainPageState extends State<MainPage>{
             InkWell(
               onTap: (){
                 Navigator.of(context).pop();
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => MoviePage(),));
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => Administracion(),));
               },
               child: Container(
                 margin: const EdgeInsets.only(top: 2),
@@ -110,13 +197,29 @@ class _MainPageState extends State<MainPage>{
               ),
             ),
             Expanded(child: Container()),
-            Container(
-              margin: const EdgeInsets.only(top: 2),
-              padding: const EdgeInsets.all(20),
-              width: double.infinity,
-              color: Colors.black,
-              alignment: Alignment.center,
-              child: const Text("Salir", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          InkWell(
+            onTap: () async {
+              setState(() {
+                _isSigningOut = true;
+              });
+              await FirebaseAuth.instance.signOut();
+              setState(() {
+                _isSigningOut = false;
+              });
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => LoginPage(),
+                ),
+              );
+            },
+            child: Container(
+                margin: const EdgeInsets.only(top: 2),
+                padding: const EdgeInsets.all(20),
+                width: double.infinity,
+                color: Colors.black,
+                alignment: Alignment.center,
+                child: const Text("Salir", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
             ),
           ],
         ),
@@ -140,13 +243,6 @@ class _MainPageState extends State<MainPage>{
           return Center(child: CircularProgressIndicator());
         }
       }),
-    /*
-    floatingActionButton: FloatingActionButton(
-      child: Icon(Icons.add),
-      onPressed: (){
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => MoviePage(),));
-      },
-    ),*/
   );
 
   Widget buildMovie(Movie movie) => ListTile(
@@ -324,6 +420,55 @@ border: OutlineInputBorder(),
 
 }
 
+
+final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+_signOut() async {
+  await _firebaseAuth.signOut();
+}
+
+class _AdministracionState extends State<Administracion> {
+
+  @override
+  Widget build (BuildContext context) => Scaffold(
+      body: new Stack(
+        children: [
+          SizedBox(width: 24.0),
+          Container(
+            width: 200,
+            height: 50,
+            margin: const EdgeInsets.only(top: 360, left: 100),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => MoviePage(),));
+              },
+              child: Text(
+                'Agregar Pelicula',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+          Container(
+            width: 200,
+            height: 50,
+            margin: const EdgeInsets.only(top: 430, left: 100),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => EliminarPage(),));
+              },
+              child: Text(
+                'Eliminar Pelicula',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      )
+  );
+//);
+}
+
 class _HomePageState extends State<HomePage> {
 
   @override
@@ -340,16 +485,22 @@ class _HomePageState extends State<HomePage> {
             child: new Text(
                 "Bienvenidos al catálogo más grande de películas"),
           ),
-          new TextButton(
-            style: ButtonStyle(
-              foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+          SizedBox(width: 24.0),
+          Container(
+            width: 200,
+            height: 50,
+            margin: const EdgeInsets.only(top: 450, left: 100),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => MainPage(),));
+              },
+              child: Text(
+                'Iniciar',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => MainPage(),));
-            },
-            child: Text('TextButton'),
-          )
+          ),
         ],
       )
   );
